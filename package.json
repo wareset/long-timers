@@ -1,0 +1,46 @@
+{
+  "name": "long-timers",
+  "version": "1.0.0",
+  "description": "Makes a number a multiple of a divisor, including rounding",
+  "keywords": [
+    "long",
+    "setTimeout",
+    "setInterval"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/wareset/long-timers#readme",
+  "bugs": {
+    "url": "https://github.com/wareset/long-timers/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wareset/long-timers.git"
+  },
+  "author": "rease <cftcview@gmail.com>",
+  "main": "index",
+  "module": "index.mjs",
+  "types": "types/index.d.ts",
+  "files": [
+    "README.md",
+    "index.d.ts",
+    "index.js",
+    "index.mjs",
+    "types/**/*"
+  ],
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": "./index.mjs",
+      "require": "./index.js",
+      "types": "./types/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "dester -m",
+    "dev": "dester -mw"
+  },
+  "devDependencies": {
+    "dester": "1.0.x",
+    "typescript": "^5.2.2"
+  }
+}
