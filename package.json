@@ -41,6 +41,6 @@
   },
   "devDependencies": {
     "dester": "1.0.x",
-    "typescript": "^5.2.2"
+    "typescript": "5.7.2"
   }
 }
