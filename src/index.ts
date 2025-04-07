@@ -1,5 +1,3 @@
-// let _Timeout = function (_cb: Function, _ms: number, _isRepeat: boolean, _args: any[]) {
-
 function loop(iam: Timeout, ms: number) {
   const MAX_TIME = 2e9 // 2e9
   iam._.t =
@@ -11,18 +9,29 @@ function loop(iam: Timeout, ms: number) {
           if (iam._.i) loop(iam, iam._.m)
           iam._.f.apply(iam, iam._.a)
         }, ms)
-  // TODO: What is it??????????????????????
   iam.hasRef() || iam.unref()
 }
 
 class Timeout {
-  declare _: { t: NodeJS.Timeout; f: Function; m: number; i: boolean; a: any[]; r: boolean }
+  _: {
+    t: NodeJS.Timeout
+    f: Function
+    m: number
+    i: boolean
+    a: any[]
+    r: boolean
+  }
 
-  constructor(cb: Function, ms: number | undefined, isRep: boolean, args: any[]) {
+  constructor(
+    cb: Function,
+    ms: number | undefined,
+    isRep: boolean,
+    args: any[]
+  ) {
     this._ = {
       t: 0 as any,
       f: cb,
-      m: (ms = (ms = +ms!) > 0 ? ms : 1),
+      m: (ms = (ms = +ms!) > 0 ? ms : 0),
       i: isRep,
       a: args,
       r: true,
@@ -35,7 +44,7 @@ class Timeout {
   }
 
   refresh() {
-    return clearTimeout(this._.t), loop(this, this._.m), this
+    return this.close(), loop(this, this._.m), this
   }
 
   hasRef() {
