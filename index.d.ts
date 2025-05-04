@@ -1,3 +1,3 @@
 export * from "./types";
-export { longSetInterval } from "./types";
-export { longSetTimeout } from "./types";
+export { setLongInterval } from "./types";
+export { setLongTimeout } from "./types";

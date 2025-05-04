@@ -1,15 +1,17 @@
-function loop(iam: Timeout, ms: number) {
+function loop(iam: Timeout, ms: number, first?: boolean) {
   const MAX_TIME = 2e9 // 2e9
-  iam._.t =
+  const _ = iam._
+  _.t =
     ms > MAX_TIME
       ? setTimeout(function () {
           loop(iam, ms - MAX_TIME)
         }, MAX_TIME)
       : setTimeout(function () {
-          if (iam._.i) loop(iam, iam._.m)
-          iam._.f.apply(iam, iam._.a)
+          if (_.i) loop(iam, _.m)
+          _.f.apply(iam, _.a)
         }, ms)
-  iam.hasRef() || iam.unref()
+  if (first) _.r = _.t.hasRef ? _.t.hasRef() : true
+  else iam.hasRef() ? iam.ref() : iam.unref()
 }
 
 class Timeout {
@@ -36,7 +38,7 @@ class Timeout {
       a: args,
       r: true,
     }
-    loop(this, ms)
+    loop(this, ms, true)
   }
 
   close() {
@@ -49,25 +51,21 @@ class Timeout {
 
   hasRef() {
     const _ = this._
-    return _.t.hasRef ? (_.r = _.t.hasRef()) : _.r
+    return _.r
   }
 
   ref() {
     const _ = this._
-    return _.r || (_.t.ref && _.t.ref()), (_.r = true), this
+    return (_.r = true), _.t.ref && _.t.ref(), this
   }
 
   unref() {
     const _ = this._
-    return _.r && _.t.unref && _.t.unref(), (_.r = false), this
+    return (_.r = false), _.t.unref && _.t.unref(), this
   }
 }
 
-//   _Timeout = Timeout
-//   return new _Timeout(_cb, _ms, _isRepeat, _args)
-// } as any
-
-export declare class ITimeout {
+export interface ITimeout {
   close(): this
   refresh(): this
   hasRef(): boolean
@@ -75,7 +73,7 @@ export declare class ITimeout {
   unref(): this
 }
 
-function longSetTimeout<F extends (...a: any[]) => any>(
+function setLongTimeout<F extends (...a: any[]) => any>(
   callback: F,
   ms?: number,
   ...args: Parameters<F>
@@ -83,7 +81,7 @@ function longSetTimeout<F extends (...a: any[]) => any>(
   return new Timeout(callback, ms, false, args) as ITimeout
 }
 
-function longSetInterval<F extends (...a: any[]) => any>(
+function setLongInterval<F extends (...a: any[]) => any>(
   callback: F,
   ms?: number,
   ...args: Parameters<F>
@@ -91,4 +89,4 @@ function longSetInterval<F extends (...a: any[]) => any>(
   return new Timeout(callback, ms, true, args) as ITimeout
 }
 
-export { longSetTimeout, longSetInterval }
+export { setLongTimeout, setLongInterval }
