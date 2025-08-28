@@ -1,4 +1,4 @@
-function loop(iam: Timeout, ms: number, first?: boolean) {
+function loop(iam: LongTimeout, ms: number, first?: boolean) {
   const MAX_TIME = 2e9 // 2e9
   const _ = iam._
   _.t =
@@ -14,7 +14,7 @@ function loop(iam: Timeout, ms: number, first?: boolean) {
   else iam.hasRef() ? iam.ref() : iam.unref()
 }
 
-class Timeout {
+class LongTimeout {
   _: {
     t: NodeJS.Timeout
     f: Function
@@ -78,7 +78,7 @@ function setLongTimeout<F extends (...a: any[]) => any>(
   ms?: number,
   ...args: Parameters<F>
 ) {
-  return new Timeout(callback, ms, false, args) as ITimeout
+  return new LongTimeout(callback, ms, false, args) as ITimeout
 }
 
 function setLongInterval<F extends (...a: any[]) => any>(
@@ -86,7 +86,7 @@ function setLongInterval<F extends (...a: any[]) => any>(
   ms?: number,
   ...args: Parameters<F>
 ) {
-  return new Timeout(callback, ms, true, args) as ITimeout
+  return new LongTimeout(callback, ms, true, args) as ITimeout
 }
 
 export { setLongTimeout, setLongInterval }
