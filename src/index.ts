@@ -1,73 +1,65 @@
 const MAX_TIME = 2e9
+const __setTimeout = setTimeout
+const __performance = performance
 
-function loop(iam: LongTimeout, ms: number, first?: boolean) {
-  const _ = iam._
+function loop(iam: LongTimeout, ms: number, isFirst?: 1) {
+  // @ts-ignore
+  const _ = iam._,
+    timeout = (_.to =
+      ms > MAX_TIME
+        ? __setTimeout(
+            // prettier-ignore
+            function () { loop(iam, ms - MAX_TIME) },
+            ((_.pn += MAX_TIME), MAX_TIME)
+          )
+        : __setTimeout(_.cb, ms - (__performance.now() - (_.pn += ms))))
 
-  if (ms > MAX_TIME) {
-    if (_.i !== null) {
-      _.i += MAX_TIME
-    }
-
-    _.t = setTimeout(function () {
-      loop(iam, ms - MAX_TIME)
-    }, MAX_TIME)
-  } else {
-    if (_.i !== null) {
-      const offset = performance.now() - _.i
-      _.i += ms
-      ms -= offset
-    }
-
-    _.t = setTimeout(function () {
-      if (_.i !== null) loop(iam, _.m)
-      _.f.apply(iam, _.a)
-    }, ms)
-  }
-
-  if (first) _.r = _.t.hasRef ? _.t.hasRef() : true
-  else iam.hasRef() ? iam.ref() : iam.unref()
+  if (isFirst) _.hr = timeout.hasRef ? timeout.hasRef() : true
+  else _.hr ? iam.ref() : iam.unref()
 }
 
 class LongTimeout {
-  _: {
-    t: NodeJS.Timeout
-    f: Function
-    m: number
-    i: number | null
-    a: any[]
-    r: boolean
+  private _: {
+    pn: number
+    to: NodeJS.Timeout
+    cb: any // борьба с ts
+    ms: number
+    hr: boolean
   }
 
   constructor(
     callback: Function,
     ms: number | undefined,
-    repeatTime: number | null,
+    isRepeat: boolean,
     args: any[]
   ) {
+    const iam = this
     this._ = {
-      t: 0 as any,
-      f: callback,
-      m: (ms = (ms = +ms!) > 0 ? ms : 0),
-      i: repeatTime,
-      a: args,
-      r: true,
+      pn: __performance.now(),
+      to: 0 as any,
+      cb() {
+        if (isRepeat) loop(iam, iam._.ms)
+        callback.apply(iam, args)
+      },
+      ms: (ms = (ms = +ms!) > 0 ? ms : 0),
+      hr: true,
     }
-    loop(this, ms, true)
+    loop(this, ms, 1)
   }
 
   /**
    * Отменить таймаут/интервал
    */
   close() {
-    return clearTimeout(this._.t), this
+    return clearTimeout(this._.to), this
   }
 
   /**
    * Перезапустить таймаут/интервал
    */
   refresh() {
-    this._.i === null || (this._.i = performance.now())
-    return this.close(), loop(this, this._.m), this
+    this._.pn = __performance.now()
+    return this.close(), loop(this, this._.ms), this
   }
 
   /**
@@ -75,8 +67,7 @@ class LongTimeout {
    * Будет ли nodejs ждать пока исполняется таймаут/интервал
    */
   hasRef() {
-    const _ = this._
-    return _.r
+    return this._.hr
   }
 
   /**
@@ -85,7 +76,7 @@ class LongTimeout {
    */
   ref() {
     const _ = this._
-    return (_.r = true), _.t.ref && _.t.ref(), this
+    return (_.hr = true), _.to.ref && _.to.ref(), this
   }
 
   /**
@@ -94,7 +85,7 @@ class LongTimeout {
    */
   unref() {
     const _ = this._
-    return (_.r = false), _.t.unref && _.t.unref(), this
+    return (_.hr = false), _.to.unref && _.to.unref(), this
   }
 }
 
@@ -111,7 +102,7 @@ function setLongTimeout<F extends (this: ITimeout, ...a: any[]) => any>(
   ms?: number,
   ...args: Parameters<F>
 ) {
-  return new LongTimeout(callback, ms, null, args) as ITimeout
+  return new LongTimeout(callback, ms, false, args) as ITimeout
 }
 
 function setLongInterval<F extends (this: ITimeout, ...a: any[]) => any>(
@@ -119,7 +110,7 @@ function setLongInterval<F extends (this: ITimeout, ...a: any[]) => any>(
   ms?: number,
   ...args: Parameters<F>
 ) {
-  return new LongTimeout(callback, ms, performance.now(), args) as ITimeout
+  return new LongTimeout(callback, ms, true, args) as ITimeout
 }
 
 export { setLongTimeout, setLongInterval }
