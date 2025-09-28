@@ -1,6 +1,6 @@
 const MAX_TIME = 2e9
 const __setTimeout = setTimeout
-const __performance = performance
+const __performance = typeof performance === 'object' ? performance : Date
 
 function loop(iam: LongTimeout, ms: number, isFirst?: 1) {
   // @ts-ignore
