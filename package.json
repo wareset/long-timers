@@ -1,11 +1,11 @@
 {
   "name": "long-timers",
   "version": "1.0.0",
-  "description": "Makes a number a multiple of a divisor, including rounding",
+  "description": "Timeout and interval greater than 24 days without time discrepancy",
   "keywords": [
     "long",
-    "setTimeout",
-    "setInterval"
+    "timeout",
+    "interval"
   ],
   "license": "MIT",
   "homepage": "https://github.com/wareset/long-timers#readme",
