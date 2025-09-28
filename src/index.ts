@@ -114,3 +114,4 @@ function setLongInterval<F extends (this: ITimeout, ...a: any[]) => any>(
 }
 
 export { setLongTimeout, setLongInterval }
+export default { setLongTimeout, setLongInterval }
