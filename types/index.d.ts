@@ -5,6 +5,6 @@ export interface ITimeout {
     ref(): this;
     unref(): this;
 }
-declare function setLongTimeout<F extends (...a: any[]) => any>(callback: F, ms?: number, ...args: Parameters<F>): ITimeout;
-declare function setLongInterval<F extends (...a: any[]) => any>(callback: F, ms?: number, ...args: Parameters<F>): ITimeout;
+declare function setLongTimeout<F extends (this: ITimeout, ...a: any[]) => any>(callback: F, ms?: number, ...args: Parameters<F>): ITimeout;
+declare function setLongInterval<F extends (this: ITimeout, ...a: any[]) => any>(callback: F, ms?: number, ...args: Parameters<F>): ITimeout;
 export { setLongTimeout, setLongInterval };

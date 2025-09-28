@@ -17,27 +17,25 @@
     "url": "git+https://github.com/wareset/long-timers.git"
   },
   "author": "rease <cftcview@gmail.com>",
-  "main": "index",
-  "module": "index.mjs",
+  "main": "dist/index",
+  "module": "dist/index.mjs",
   "types": "types/index.d.ts",
   "files": [
     "README.md",
-    "index.d.ts",
-    "index.js",
-    "index.mjs",
+    "dist/**/*",
     "types/**/*"
   ],
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "import": "./index.mjs",
-      "require": "./index.js",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
       "types": "./types/index.d.ts"
     }
   },
   "scripts": {
-    "build": "dester -m",
-    "dev": "dester -mw"
+    "build": "dester -m --out dist",
+    "dev": "dester -mw --out dist"
   },
   "devDependencies": {
     "dester": "1.0.x"
