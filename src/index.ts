@@ -16,7 +16,10 @@ function loop(iam: LongTimeout, ms: number) {
           function () { loop(iam, ms - EXEC_TIME) },
           ((_.pn += EXEC_TIME), EXEC_TIME)
         )
-      : __setTimeout(_.cb, ms - (__performance.now() - (_.pn += ms)))
+      : __setTimeout(
+          _.cb,
+          (ms -= __performance.now() - (_.pn += ms)) >= 1 ? ms : 1
+        )
 
   _.hr ? iam.ref() : iam.unref()
 }
@@ -52,7 +55,7 @@ export class LongTimeout<
         if (isRepeat) loop(iam, iam._.ms)
         callback.apply(iam, args)
       },
-      ms: (delay = (delay = +delay!) > 0 ? delay : 0),
+      ms: (delay = (delay = +delay!) >= 1 ? delay : 1),
       hr: isRefed,
     }
     loop(this, delay)
