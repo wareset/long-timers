@@ -1,37 +1,48 @@
-const MAX_TIME = 2e9
+const EXEC_TIME = 21e8
+const DIFF_TIME = 214e7
+
 const __setTimeout = setTimeout
+const __clearTimeout = clearTimeout
+
 const __performance = typeof performance === 'object' ? performance : Date
 
-function loop(iam: LongTimeout, ms: number, isFirst?: 1) {
+function loop(iam: LongTimeout, ms: number) {
   // @ts-ignore
-  const _ = iam._,
-    timeout = (_.to =
-      ms > MAX_TIME
-        ? __setTimeout(
-            // prettier-ignore
-            function () { loop(iam, ms - MAX_TIME) },
-            ((_.pn += MAX_TIME), MAX_TIME)
-          )
-        : __setTimeout(_.cb, ms - (__performance.now() - (_.pn += ms))))
+  const _ = iam._
+  _.to =
+    ms > DIFF_TIME
+      ? __setTimeout(
+          // prettier-ignore
+          function () { loop(iam, ms - EXEC_TIME) },
+          ((_.pn += EXEC_TIME), EXEC_TIME)
+        )
+      : __setTimeout(_.cb, ms - (__performance.now() - (_.pn += ms)))
 
-  if (isFirst) _.hr = timeout.hasRef ? timeout.hasRef() : true
-  else _.hr ? iam.ref() : iam.unref()
+  _.hr ? iam.ref() : iam.unref()
 }
 
-class LongTimeout {
+export class LongTimeout<
+  F extends (this: LongTimeout<F>, ...args: any[]) => any = any,
+> {
   private _: {
+    // performance.now
     pn: number
+    // NodeJS.Timeout or number (timeoutId)
     to: NodeJS.Timeout
+    // callback
     cb: any // борьба с ts
+    // delay
     ms: number
+    // has ref
     hr: boolean
   }
 
   constructor(
-    callback: Function,
-    ms: number | undefined,
+    callback: F,
+    delay: number | undefined,
+    args: Parameters<F>,
     isRepeat: boolean,
-    args: any[]
+    isRefed: boolean
   ) {
     const iam = this
     this._ = {
@@ -41,21 +52,21 @@ class LongTimeout {
         if (isRepeat) loop(iam, iam._.ms)
         callback.apply(iam, args)
       },
-      ms: (ms = (ms = +ms!) > 0 ? ms : 0),
-      hr: true,
+      ms: (delay = (delay = +delay!) > 0 ? delay : 0),
+      hr: isRefed,
     }
-    loop(this, ms, 1)
+    loop(this, delay)
   }
 
   /**
-   * Отменить таймаут/интервал
+   * Отменить таймаут/интервал.
    */
   close() {
-    return clearTimeout(this._.to), this
+    return __clearTimeout(this._.to), this
   }
 
   /**
-   * Перезапустить таймаут/интервал
+   * Перезапустить таймаут/интервал.
    */
   refresh() {
     this._.pn = __performance.now()
@@ -63,16 +74,17 @@ class LongTimeout {
   }
 
   /**
-   * Для nodejs
-   * Будет ли nodejs ждать пока исполняется таймаут/интервал
+   * Для Nodejs.
+   * Будет ли Nodejs ждать пока существует таймаут/интервал.
+   * По умолчанию равен 'true'.
    */
   hasRef() {
     return this._.hr
   }
 
   /**
-   * Для nodejs
-   * nodejs не остановится пока исполняется таймаут/интервал
+   * Работает только в Nodejs.
+   * Nodejs не остановится пока существует таймаут/интервал.
    */
   ref() {
     const _ = this._
@@ -80,8 +92,8 @@ class LongTimeout {
   }
 
   /**
-   * Для nodejs
-   * nodejs может остановиться не дожидаясь таймаут/интервал
+   * Работает только в Nodejs.
+   * Nodejs может завершиться не дожидаясь таймаут/интервал.
    */
   unref() {
     const _ = this._
@@ -89,29 +101,21 @@ class LongTimeout {
   }
 }
 
-export interface ITimeout {
-  close(): this
-  refresh(): this
-  hasRef(): boolean
-  ref(): this
-  unref(): this
+export function setLongTimeout<
+  F extends (this: LongTimeout<F>, ...args: any[]) => any,
+>(callback: F, delay?: number, ...args: Parameters<F>): LongTimeout<F> {
+  return new LongTimeout(callback, delay, args, false, true)
 }
 
-function setLongTimeout<F extends (this: ITimeout, ...a: any[]) => any>(
-  callback: F,
-  ms?: number,
-  ...args: Parameters<F>
-) {
-  return new LongTimeout(callback, ms, false, args) as ITimeout
+export function setLongInterval<
+  F extends (this: LongTimeout<F>, ...args: any[]) => any,
+>(callback: F, delay?: number, ...args: Parameters<F>): LongTimeout<F> {
+  return new LongTimeout(callback, delay, args, true, true)
 }
 
-function setLongInterval<F extends (this: ITimeout, ...a: any[]) => any>(
-  callback: F,
-  ms?: number,
-  ...args: Parameters<F>
-) {
-  return new LongTimeout(callback, ms, true, args) as ITimeout
+export function clearLongTimeout(longTimeoutOrInterval: LongTimeout) {
+  if (longTimeoutOrInterval instanceof LongTimeout)
+    longTimeoutOrInterval.close()
 }
 
-export { setLongTimeout, setLongInterval }
-export default { setLongTimeout, setLongInterval }
+export { clearLongTimeout as clearLongInterval }
