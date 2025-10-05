@@ -1,4 +1,4 @@
-const EXEC_TIME = 2e9
+const EXEC_TIME = 21e8
 const DIFF_TIME = 214e7
 
 const __setTimeout = setTimeout
